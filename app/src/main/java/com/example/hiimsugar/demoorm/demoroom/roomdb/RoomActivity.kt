@@ -26,7 +26,14 @@ class RoomActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        database = Room.databaseBuilder(applicationContext, RoomDB::class.java, ROOM_SUGAR_DB).build()
+        database = Room.databaseBuilder(applicationContext, RoomDB::class.java, ROOM_SUGAR_DB)
+                .addMigrations(object : Migration(1,2) {
+                    override fun migrate(database: SupportSQLiteDatabase) {
+
+                    }
+
+                })
+                .build()
 
         val product1 = Product()
         product1.name = "product1"
@@ -63,6 +70,7 @@ class RoomActivity : AppCompatActivity() {
             Thread(Runnable {
                 database.productDao().insertAll(list)
                 Log.d("clickToInsert", "Inserted")
+                UpdateUI(list[0])
             }).start()
 
         }
@@ -85,7 +93,7 @@ class RoomActivity : AppCompatActivity() {
 
         tvMigtation.setOnClickListener {
             database = Room.databaseBuilder(applicationContext, RoomDB::class.java, ROOM_SUGAR_DB)
-                    .addMigrations(object : Migration(1, 2) {
+                    .addMigrations(object : Migration(2, 3) {
                         override fun migrate(database: SupportSQLiteDatabase) {
                             database.execSQL("ALTER TABLE product1 " + " ADD COLUMN price INTEGER")
                         }
@@ -96,6 +104,8 @@ class RoomActivity : AppCompatActivity() {
     }
 
     private fun UpdateUI(product: Product) {
-        data.text = product.name.toString()
+        runOnUiThread {
+            data.text = product.name.toString()
+        }
     }
 }
